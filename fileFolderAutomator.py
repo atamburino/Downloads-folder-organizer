@@ -14,8 +14,8 @@ from watchdog.events import FileSystemEventHandler
 source_dir = "/Users/Windows-hater/Downloads"
 
 #Destination Directory Folders
-dest_dir_image = ""
-dest_dir_documents = ""
+dest_dir_image = "C:\Users\Windows-hater\OneDrive\Desktop\Images"
+dest_dir_documents = "C:\Users\Windows-hater\OneDrive\Desktop\Docs"
 
 # ? supported image types
 image_extensions = [".jpg", ".jpeg", ".jpe", ".jif", ".jfif", ".jfi", ".png", ".gif", ".webp", ".tiff", ".tif", ".psd", ".raw", ".arw", ".cr2", ".nrw",
