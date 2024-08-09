@@ -6,7 +6,19 @@ import logging
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
+#Source Folder = Folder to track
 source_dir = "/Users/Windows-hater/Downloads"
+
+#Destination Directory Folders
+dest_dir_image = ""
+dest_dir_documents = ""
+
+# ? supported image types
+image_extensions = [".jpg", ".jpeg", ".jpe", ".jif", ".jfif", ".jfi", ".png", ".gif", ".webp", ".tiff", ".tif", ".psd", ".raw", ".arw", ".cr2", ".nrw",
+                    ".k25", ".bmp", ".dib", ".heif", ".heic", ".ind", ".indd", ".indt", ".jp2", ".j2k", ".jpf", ".jpf", ".jpx", ".jpm", ".mj2", ".svg", ".svgz", ".ai", ".eps", ".ico"]
+# ? supported Document types
+document_extensions = [".doc", ".docx", ".odt",
+                       ".pdf", ".xls", ".xlsx", ".ppt", ".pptx"]
 
 #Testing loopign through files
 with os.scandir(source_dir) as entries:
@@ -20,9 +32,16 @@ class FileHandler(FileSystemEventHandler):
             for entry in entries:
                 name = entry.name
                 self.check_image_files(entry, name) #Image files
-                self.check_document_files(entry, name) #Dc files
+                self.check_document_files(entry, name) #Doc files
 
-# Watchdogs Example API Usage Code
+    def check_image_files(self, entry, name):  # * Checks all Image Files
+        for image_extension in image_extensions:
+            if name.endswith(image_extension) or name.endswith(image_extension.upper()):
+                move_file(dest_dir_image, entry, name)
+                logging.info(f"Moved image file: {name}")
+
+
+# ! Watchdogs API Code (From Site)
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO,
                         format='%(asctime)s - %(message)s',
