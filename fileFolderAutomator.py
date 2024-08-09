@@ -1,13 +1,9 @@
 import logging
-# import os
-# import sys
-# import time
 
 from os import scandir, rename
 from os.path import splitext, exists, join
 from shutil import move
 from time import sleep
-
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
@@ -44,13 +40,9 @@ def move_file(dest, entry, name):
         rename(oldName, newName)
     move(entry, dest)
 
-# #Testing loopign through files
-# with os.scandir(source_dir) as entries:
-#     for entry in entries:
-#         print(entry.name)
-
 class FileHandler(FileSystemEventHandler):
     # ? THIS FUNCTION WILL RUN WHENEVER THERE IS A CHANGE IN "source_dir"
+    # ? Added .upper to include files with capital extensions 
     def on_modified(self, event):
         with scandir(source_dir) as entries:
             for entry in entries:
@@ -58,13 +50,15 @@ class FileHandler(FileSystemEventHandler):
                 self.check_image_files(entry, name) #Image files
                 self.check_document_files(entry, name) #Doc files
 
-    def check_image_files(self, entry, name):  # * Checks all Image Files
+    # * Checks all Image Files
+    def check_image_files(self, entry, name):
         for image_extension in image_extensions:
             if name.endswith(image_extension) or name.endswith(image_extension.upper()):
                 move_file(dest_dir_image, entry, name)
                 logging.info(f"Moved image file: {name}")
-
-    def check_document_files(self, entry, name):  # * Checks all Document Files
+                
+    # * Checks all Document Files
+    def check_document_files(self, entry, name):
         for documents_extension in document_extensions:
             if name.endswith(documents_extension) or name.endswith(documents_extension.upper()):
                 move_file(dest_dir_documents, entry, name)
