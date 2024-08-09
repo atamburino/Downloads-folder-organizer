@@ -1,8 +1,12 @@
+import logging
 import os
 import sys
 import time
-import logging
 
+from os import scandir, rename
+from os.path import splitext, exists, join
+from shutil import move
+from time import sleep
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
@@ -20,10 +24,29 @@ image_extensions = [".jpg", ".jpeg", ".jpe", ".jif", ".jfif", ".jfi", ".png", ".
 document_extensions = [".doc", ".docx", ".odt",
                        ".pdf", ".xls", ".xlsx", ".ppt", ".pptx"]
 
-#Testing loopign through files
-with os.scandir(source_dir) as entries:
-    for entry in entries:
-        print(entry.name)
+
+def make_unique(dest, name):
+    filename, extension = splitext(name)
+    counter = 1
+    # * IF FILE EXISTS, ADDS NUMBER TO THE END OF THE FILENAME
+    while exists(f"{dest}/{name}"):
+        name = f"{filename}({str(counter)}){extension}"
+        counter += 1
+
+    return name
+
+def move_file(dest, entry, name):
+    if exists(f"{dest}/{name}"):
+        unique_name = make_unique(dest, name)
+        oldName = join(dest, name)
+        newName = join(dest, unique_name)
+        rename(oldName, newName)
+    move(entry, dest)
+
+# #Testing loopign through files
+# with os.scandir(source_dir) as entries:
+#     for entry in entries:
+#         print(entry.name)
 
 class FileHandler(FileSystemEventHandler):
     # ? THIS FUNCTION WILL RUN WHENEVER THERE IS A CHANGE IN "source_dir"
