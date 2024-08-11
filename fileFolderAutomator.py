@@ -1,4 +1,5 @@
 import logging
+import sqlite3
 
 from os import scandir, rename
 from os.path import splitext, exists, join
@@ -9,18 +10,6 @@ from watchdog.events import FileSystemEventHandler
 
 #Source Folder = Folder to track
 source_dir = "/Users/Windows-hater/Downloads"
-
-#Destination Directory Folders
-dest_dir_image = "/Users/Windows-hater/Downloads/Images"
-dest_dir_documents = "/Users/Windows-hater/Downloads/Docs"
-
-# ? supported image types
-image_extensions = [".jpg", ".jpeg", ".jpe", ".jif", ".jfif", ".jfi", ".png", ".gif", ".webp", ".tiff", ".tif", ".psd", ".raw", ".arw", ".cr2", ".nrw",
-                    ".k25", ".bmp", ".dib", ".heif", ".heic", ".ind", ".indd", ".indt", ".jp2", ".j2k", ".jpf", ".jpf", ".jpx", ".jpm", ".mj2", ".svg", ".svgz", ".ai", ".eps", ".ico", "avif"]
-# ? supported Document types
-document_extensions = [".doc", ".docx", ".odt",
-                       ".pdf", ".xls", ".xlsx", ".ppt", ".pptx"]
-
 
 def make_unique(dest, name):
     filename, extension = splitext(name)
@@ -41,28 +30,29 @@ def move_file(dest, entry, name):
     move(entry, dest)
 
 class FileHandler(FileSystemEventHandler):
-    # ? THIS FUNCTION WILL RUN WHENEVER THERE IS A CHANGE IN "source_dir"
-    # ? Added .upper to include files with capital extensions 
+    def get_destination(self, ext):
+        conn = sqlite3.connect('C:/Users/Windows-hater/OneDrive/Documents/Repos/Downloads-folder-organizer/FileMappings.db') # Connect to the database
+        cursor = conn.cursor()
+        cursor.execute("SELECT destination_folder FROM mappings WHERE file_extension = ?", (ext,))
+        result = cursor.fetchone()
+        conn.close()
+        return result[0] if result else None
+
     def on_modified(self, event):
         with scandir(source_dir) as entries:
             for entry in entries:
-                name = entry.name
-                self.check_image_files(entry, name) #Image files
-                self.check_document_files(entry, name) #Doc files
+                if entry.is_file():  # Make sure it's a file
+                    name = entry.name
+                    _, ext = splitext(name)
+                    ext = ext.lower()  # Handle extensions in a case-insensitive manner
+                    destination = self.get_destination(ext)  # Use self to call the method
+                    if destination:
+                        move_file(destination, entry, name)
+                        logging.info(f"Moved file '{name}' to '{destination}'")
+                    else:
+                        logging.info(f"No mapping found for extension '{ext}', file '{name}' skipped.")
 
-    # * Checks all Image Files
-    def check_image_files(self, entry, name):
-        for image_extension in image_extensions:
-            if name.endswith(image_extension) or name.endswith(image_extension.upper()):
-                move_file(dest_dir_image, entry, name)
-                logging.info(f"Moved image file: {name}")
-                
-    # * Checks all Document Files
-    def check_document_files(self, entry, name):
-        for documents_extension in document_extensions:
-            if name.endswith(documents_extension) or name.endswith(documents_extension.upper()):
-                move_file(dest_dir_documents, entry, name)
-                logging.info(f"Moved document file: {name}")
+
 
 
 # ! Watchdogs API Code (From Site)
